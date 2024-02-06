@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Selu383.SP24.Api.Features;
+using Selu383.SP24.Api.Features.UserRoles;
 
 namespace Selu383.SP24.Api.Features.Roles
 {
