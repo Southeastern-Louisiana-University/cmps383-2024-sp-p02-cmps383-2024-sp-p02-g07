@@ -1,4 +1,4 @@
-﻿namespace Selu383.SP24.Api.Features.UserRole
+﻿namespace Selu383.SP24.Api.Features.UserRoles
 {
     public class UserCreateDto
     {
