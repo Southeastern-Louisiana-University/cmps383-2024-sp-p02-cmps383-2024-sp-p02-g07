@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP24.Api.Data;
@@ -7,6 +8,7 @@ namespace Selu383.SP24.Api.Controllers;
 
 [Route("api/hotels")]
 [ApiController]
+[Authorize(Roles = "Admin")]
 public class HotelsController : ControllerBase
 {
     private readonly DbSet<Hotel> hotels;
@@ -45,10 +47,19 @@ public class HotelsController : ControllerBase
             return BadRequest();
         }
 
-        var hotel = new Hotel
+        if (dto.ManagerId.HasValue)
+        {
+            if (!IsManagerIdValid(dto.ManagerId.Value))
+            {
+                return BadRequest("Invalid ManagerId.");
+            }
+        }
+
+            var hotel = new Hotel
         {
             Name = dto.Name,
             Address = dto.Address,
+            ManagerId=dto.ManagerId,
         };
         hotels.Add(hotel);
 
@@ -57,6 +68,11 @@ public class HotelsController : ControllerBase
         dto.Id = hotel.Id;
 
         return CreatedAtAction(nameof(GetHotelById), new { id = dto.Id }, dto);
+    }
+
+    private bool IsManagerIdValid(int value)
+    {
+        throw new NotImplementedException();
     }
 
     [HttpPut]
@@ -74,12 +90,21 @@ public class HotelsController : ControllerBase
             return NotFound();
         }
 
+        if (dto.ManagerId.HasValue)
+        {
+            if (!IsManagerIdValid(dto.ManagerId.Value))
+            {
+                return BadRequest("Invalid ManagerId.");
+            }
+        }
+
         hotel.Name = dto.Name;
         hotel.Address = dto.Address;
 
         dataContext.SaveChanges();
 
         dto.Id = hotel.Id;
+        dto.ManagerId = hotel.ManagerId;
 
         return Ok(dto);
     }
