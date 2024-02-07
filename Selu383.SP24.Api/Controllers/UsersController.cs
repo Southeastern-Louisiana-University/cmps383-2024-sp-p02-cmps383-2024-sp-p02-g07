@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿/*using Microsoft.AspNetCore.Mvc;
 
 namespace Selu383.SP24.Api.Controllers
 {
@@ -64,3 +64,4 @@ namespace Selu383.SP24.Api.Controllers
         }
     }
 }
+*/
