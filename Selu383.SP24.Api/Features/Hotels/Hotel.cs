@@ -1,4 +1,5 @@
-﻿using Selu383.SP24.Api.Features.Users;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Selu383.SP24.Api.Features.Users;
 
 namespace Selu383.SP24.Api.Features.Hotels;
 
@@ -10,6 +11,5 @@ public class Hotel
 
     public string Address { get; set; }
 
-    public int? ManagerId { get; set; }
-    public virtual User? Manager { get; set; }
+    public User User { get; set; }
 }

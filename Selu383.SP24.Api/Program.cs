@@ -1,5 +1,7 @@
+using System.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Selu383.SP24.Api.Data;
 using Selu383.SP24.Api.Features.Hotels;
 using Selu383.SP24.Api.Features.Roles;
@@ -92,6 +94,30 @@ using (var scope = app.Services.CreateScope())
 
         await db.SaveChangesAsync();
     }
+    if (!await hotels.AnyAsync())
+    {
+
+        var roles = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
+
+        await roles.CreateAsync(new Role
+        {
+            Name = "Admin"
+        }) ;
+
+        await roles.CreateAsync(new Role
+        {
+            Name = "User"
+        }) ;
+
+
+
+        await db.SaveChangesAsync();
+    }
+
+
+
+
+
 }
 
 // Configure the HTTP request pipeline.
