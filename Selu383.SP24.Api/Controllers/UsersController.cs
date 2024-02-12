@@ -45,14 +45,14 @@ namespace Selu383.SP24.Api.Controllers
             }
 
 
-            var roles = await _roleManager.Roles.Select(x => x.Name).ToListAsync();
-            foreach (var x in userCreateDto.Roles)
-            {
-                if (!roles.Contains(x))
-                {
-                    return BadRequest();
-                }
-            }
+            //var roles = await _roleManager.Roles.Select(x => x.Name).ToListAsync();
+            //foreach (var x in userCreateDto.Roles)
+            //{
+            //    if (!roles.Contains(x))
+            //    {
+            //        return BadRequest();
+            //    }
+            //}
 
             var userToCreate = new User
             {
@@ -68,7 +68,7 @@ namespace Selu383.SP24.Api.Controllers
                 return BadRequest();
             }
 
-            await _userManager.AddToRolesAsync(user, userCreateDto.Roles);
+            //await _userManager.AddToRolesAsync(user, userCreateDto.Roles);
 
             var userToReturn = new UserDto
             {
