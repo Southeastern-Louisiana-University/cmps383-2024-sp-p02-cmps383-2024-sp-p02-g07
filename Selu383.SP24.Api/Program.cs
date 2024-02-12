@@ -6,8 +6,6 @@ using Selu383.SP24.Api.Data;
 using Selu383.SP24.Api.Features.Hotels;
 using Selu383.SP24.Api.Features.Roles;
 using Selu383.SP24.Api.Features.Users;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 
 var builder = WebApplication.CreateBuilder(args);
