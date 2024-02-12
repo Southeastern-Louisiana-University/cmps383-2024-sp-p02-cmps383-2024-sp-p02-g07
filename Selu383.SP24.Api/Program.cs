@@ -94,28 +94,56 @@ using (var scope = app.Services.CreateScope())
         await db.SaveChangesAsync();
     }
 
+    //var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
+    var roles = db.Set<Role>();
+    
 
-    if (!await hotels.AnyAsync())
+
+    if (!await roles.AnyAsync())
     {
 
-        var roles = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
 
-        await roles.CreateAsync(new Role
+        await roleManager.CreateAsync(new Role
         {
             Name = "Admin"
-        }) ;
+        });
 
-        await roles.CreateAsync(new Role
+        await roleManager.CreateAsync(new Role
         {
             Name = "User"
-        }) ;
+        });
 
 
 
         await db.SaveChangesAsync();
     }
 
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+    var users = db.Set<User>();
+    if (!await users.AnyAsync())
+    {
+        await userManager.CreateAsync(new User
+        {
+            UserName = "bob"
+        }, "Password123!");
+        await userManager.AddToRoleAsync((userManager.FindByNameAsync("bob")).Result!, "User");
 
+        await userManager.CreateAsync(new User
+        {
+            UserName = "sue"
+        }, "Password123!");
+
+        await userManager.AddToRoleAsync((userManager.FindByNameAsync("sue")).Result!, "User");
+
+        await userManager.CreateAsync(new User
+        {
+            UserName = "galkadi"
+        }, "Password123!");
+        await userManager.AddToRoleAsync((userManager.FindByNameAsync("galkadi")).Result!, "Admin");
+    }
+
+    var services = scope.ServiceProvider;
 
 
 
