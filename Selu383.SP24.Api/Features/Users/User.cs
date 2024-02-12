@@ -11,8 +11,9 @@ namespace Selu383.SP24.Api.Features.Users
     {
         public ICollection<UserRole> Roles { get; set; }
 
-        public ICollection<Hotel> ManagerHotels { get; set; }
-
-
     }
+
+
+
+
 }
