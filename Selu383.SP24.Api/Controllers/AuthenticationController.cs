@@ -3,62 +3,97 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP24.Api.Data;
-using Selu383.SP24.Api.Features.Dtos;
 using Selu383.SP24.Api.Features.Hotels;
 using Selu383.SP24.Api.Features.Users;
-using System.Security.Claims;
 
 namespace Selu383.SP24.Api.Controllers
 {
-    [Route("/api/authentication")]
-    public class AuthenticationController : Controller
+    [ApiController]
+    [Route("api/authentication")]
+    public class AuthenticationController : ControllerBase
     {
-        private readonly DataContext dataContext;
-        private readonly SignInManager<User> signInManager;
-        private readonly UserManager<User> userManager;
+        private readonly SignInManager<User> _signInManager;
+        private readonly UserManager<User> _userManager;
         private readonly DbSet<User> users;
+        private readonly DataContext dataContext;
 
 
 
-        public AuthenticationController(DataContext dataContext)
+        public AuthenticationController(SignInManager<User> _signInManager, UserManager<User> _userManager)
         {
-            this.dataContext = dataContext;
-
+            this._signInManager = _signInManager;
+            this._userManager = _userManager;
         }
 
-        [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginDto loginDto)
+        [HttpPost]
+        [Route("login")]
+        public async Task<ActionResult<UserDto>> Login(LoginDto dto)
         {
-            if (!IsValidCredentials(loginDto.UserName, loginDto.Password))
+            if (string.IsNullOrEmpty(dto.UserName))
             {
-                return BadRequest("Invalid username or password.");
+                return BadRequest("Username cannot be null or empty.");
             }
 
-            string token = GenerateJwtToken(loginDto.UserName);
+            var user = await _userManager.FindByNameAsync(dto.UserName);
 
-            UserDto userDto = await GetUserInfo(loginDto.UserName);
+            if (user == null)
+            {
+                return NotFound();
+            }
 
-            return Ok(new { Token = token, User = userDto });
+            var result = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, false);
+
+            if (!result.Succeeded)
+            {
+                return BadRequest();
+            }
+            await _signInManager.SignInAsync(user, true);
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var userDto = new UserDto
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Roles = roles.ToArray(),
+            };
+
+            return Ok(userDto);
+
         }
-
-        private Task<UserDto> GetUserInfo(string userName)
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<ActionResult<UserDto>> GetCurrentUser()
         {
-            throw new NotImplementedException();
+            var user = User.Identity.Name;
+
+            var resultDto = await GetDto(_userManager.Users).SingleAsync(x => x.UserName == user);
+
+            return Ok(resultDto);
         }
 
-        private string GenerateJwtToken(string userName)
+        private static IQueryable<UserDto> GetDto(IQueryable<User> users)
         {
-            throw new NotImplementedException();
+            return users.Select(x => new UserDto
+            {
+                Id = x.Id,
+                UserName = x.UserName,
+                Roles = x.Roles.Select(y => y.Role!.Name).ToArray()
+            });
         }
 
-        private bool IsValidCredentials(string userName, string password)
+        [HttpPost]
+        [Route("logout")]
+        [Authorize]
+        public async Task<ActionResult> Logout()
         {
-            throw new NotImplementedException();
+            await _signInManager.SignOutAsync();
+            return Ok();
+
         }
- 
-     
 
 
-        
+
+
     }
 }
