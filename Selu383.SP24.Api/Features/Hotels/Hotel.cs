@@ -9,7 +9,8 @@ public class Hotel
     public string Name { get; set; }
 
     public string Address { get; set; }
-    public User? Manager { get; set; }
+    public virtual User? Manager { get; set; }
  
    public int? ManagerId { get; set; }
+
 }
