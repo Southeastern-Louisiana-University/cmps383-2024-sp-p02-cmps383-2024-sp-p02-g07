@@ -1,67 +1,78 @@
-﻿/*using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Selu383.SP24.Api.Data;
+using Selu383.SP24.Api.Features.Users;
 
 namespace Selu383.SP24.Api.Controllers
 {
-    public class UsersController : Controller
+    [ApiController]
+    [Route("api/users")]
+    public class UserController : Controller
     {
-        private readonly IUserService _userService;
+        private readonly UserManager<User> userManager;
+        private readonly RoleManager<Role> roleManager;
 
-        public UsersController(IUserService userService)
+        public UserController(UserManager<User> userManager, RoleManager<Role> roleManager)
         {
-            _userService = userService;
-        }
+            this.userManager = userManager;
+            this.roleManager = roleManager;
 
+        }
         [HttpPost]
-        public async Task<ActionResult<UserDto>> CreateUser(CreateUserDto createUserDto)
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<CreateUserDto>> createUser(CreateUserDto dto)
         {
-            // Check if roles provided are valid roles in your system
-            if (!AreRolesValid(createUserDto.Roles))
+            if ((dto.Roles.Length == 0) || (dto.UserName == null))
             {
-                return BadRequest("Invalid role(s) provided.");
+                return BadRequest();
             }
 
-            // Check if at least one role is provided
-            if (createUserDto.Roles == null || createUserDto.Roles.Count == 0)
+            var roles = await roleManager.Roles.Select(x => x.Name).ToListAsync();
+            foreach (var role in dto.Roles)
             {
-                return BadRequest("At least one role must be provided.");
+                if (!roles.Contains(role))
+                {
+                    return BadRequest($"{role} does not exits.");
+
+                }
             }
 
-            // Check if the username is unique
-            if (await _userService.IsUsernameTakenAsync(createUserDto.Username))
+            var existingUser = await userManager.FindByNameAsync(dto.UserName);
+            if (existingUser != null)
             {
-                return BadRequest("Username is already taken.");
+                return BadRequest($"The username {dto.UserName} is already taken");
             }
 
-            // Create the user
-            var user = new User
+            var userCreated = new User
             {
-                Username = createUserDto.Username,
-                Roles = createUserDto.Roles,
-                // Include other properties from CreateUserDto
+                UserName = dto.UserName,
+
             };
 
-            // Save the user
-            _userService.AddUser(user);
-            _userService.SaveChanges();
+            var validatePassword = await userManager.CreateAsync(userCreated, dto.Password);
 
-            // Return the created user
-            var userDto = new UserDto
+            if (!validatePassword.Succeeded)
             {
-                Id = user.Id,
-                Username = user.Username,
-                Roles = user.Roles,
-                // Include other relevant user details
+                return BadRequest();
+            }
+
+            var validateRole = await userManager.AddToRolesAsync(userCreated, dto.Roles);
+            if (!validateRole.Succeeded)
+            {
+                return BadRequest();
+            }
+
+            var newUser = new UserDto
+            {
+                Id = userCreated.Id,
+                UserName = dto.UserName,
+                Roles = dto.Roles,
+
             };
 
-            return Ok(userDto);
-        }
-
-        // Helper method to check if roles provided are valid roles in your system
-        private bool AreRolesValid(List<string> roles)
-        {
-            // Implement your logic to check if each role in the list is a valid role
-            // Return true if all roles are valid, otherwise return false
+            return Ok(newUser);
         }
     }
 }
-*/

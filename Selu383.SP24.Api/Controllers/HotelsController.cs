@@ -3,125 +3,128 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP24.Api.Data;
 using Selu383.SP24.Api.Features.Hotels;
-using System;
-using System.Linq;
+using Selu383.SP24.Api.Features.Users;
 
-namespace Selu383.SP24.Api.Controllers
+namespace Selu383.SP24.Api.Controllers;
+
+[Route("api/hotels")]
+[ApiController]
+public class HotelsController : ControllerBase
 {
-    [Route("api/hotels")]
-    [ApiController]
+    private readonly DbSet<Hotel> hotels;
+    private readonly DataContext dataContext;
     
-    public class HotelsController : ControllerBase
+
+    public HotelsController(DataContext dataContext)
     {
-        private readonly DbSet<Hotel> _hotels;
-        private readonly DataContext _dataContext;
+        this.dataContext = dataContext;
+        hotels = dataContext.Set<Hotel>();
+      
+    }
 
-        public HotelsController(DataContext dataContext)
+    [HttpGet]
+    public IQueryable<HotelDto> GetAllHotels()
+    {
+        return GetHotelDtos(hotels);
+    }
+
+    [HttpGet]
+    [Route("{id}")]
+    public ActionResult<HotelDto> GetHotelById(int id)
+    {
+        var result = GetHotelDtos(hotels.Where(x => x.Id == id)).FirstOrDefault();
+        if (result == null)
         {
-            _dataContext = dataContext;
-            _hotels = dataContext.Set<Hotel>();
+            return NotFound();
         }
 
-        [HttpGet]
-        public IQueryable<HotelDto> GetAllHotels()
+        return Ok(result);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    public ActionResult<HotelDto> CreateHotel(HotelDto dto)
+    {
+        if (IsInvalid(dto))
         {
-            return GetHotelDtos(_hotels);
+            return BadRequest();
         }
 
-        [HttpGet]
-        [Route("{id}")]
-        public ActionResult<HotelDto> GetHotelById(int id)
+        var hotel = new Hotel
         {
-            var result = GetHotelDtos(_hotels.Where(x => x.Id == id)).FirstOrDefault();
-            if (result == null)
+            Name = dto.Name,
+            Address = dto.Address,
+            ManagerId = dto.ManagerId,
+        };
+        hotels.Add(hotel);
+
+        dataContext.SaveChanges();
+
+        dto.Id = hotel.Id;
+
+        return CreatedAtAction(nameof(GetHotelById), new { id = dto.Id }, dto);
+    }
+
+    [HttpPut]
+    [Route("{id}")]
+    [Authorize]
+    public ActionResult<HotelDto> UpdateHotel(int id, HotelDto dto)
+    {
+        if (IsInvalid(dto))
+        {
+            return BadRequest();
+        }
+
+        var hotel = hotels.FirstOrDefault(x => x.Id == id);
+        if (hotel == null)
+        {
+            return NotFound();
+        }
+
+        hotel.Name = dto.Name;
+        hotel.Address = dto.Address;
+
+        dataContext.SaveChanges();
+
+        dto.Id = hotel.Id;
+
+        return Ok(dto);
+    }
+
+    [HttpDelete]
+    [Route("{id}")]
+    [Authorize(Roles = "Admin")]
+    public ActionResult DeleteHotel(int id)
+    {
+        var hotel = hotels.FirstOrDefault(x => x.Id == id);
+        if (hotel == null)
+        {
+            return NotFound();
+        }
+
+        hotels.Remove(hotel);
+
+        dataContext.SaveChanges();
+
+        return Ok();
+    }
+
+    private static bool IsInvalid(HotelDto dto)
+    {
+        return string.IsNullOrWhiteSpace(dto.Name) ||
+               dto.Name.Length > 120 ||
+               string.IsNullOrWhiteSpace(dto.Address);
+    }
+
+    private static IQueryable<HotelDto> GetHotelDtos(IQueryable<Hotel> hotels)
+    {
+        return hotels
+            .Select(x => new HotelDto
             {
-                return NotFound();
-            }
-
-            return Ok(result);
-        }
-
-        [HttpPost]
-        public ActionResult<HotelDto> CreateHotel(HotelDto dto)
-        {
-            if (IsInvalid(dto))
-            {
-                return BadRequest();
-            }
-
-            var hotel = new Hotel
-            {
-                Name = dto.Name,
-                Address = dto.Address,
-                ManagerId = dto.ManagerId,
-            };
-            _hotels.Add(hotel);
-
-            _dataContext.SaveChanges();
-
-            dto.Id = hotel.Id;
-
-            return CreatedAtAction(nameof(GetHotelById), new { id = dto.Id }, dto);
-        }
-
-        [HttpPut]
-        [Route("{id}")]
-        public ActionResult<HotelDto> UpdateHotel(int id, HotelDto dto)
-        {
-            var hotel = _hotels.FirstOrDefault(x => x.Id == id);
-            if (hotel == null)
-            {
-                return NotFound();
-            }
-
-            if (IsInvalid(dto))
-            {
-                return BadRequest();
-            }
-
-            hotel.Name = dto.Name;
-            hotel.Address = dto.Address;
-            hotel.ManagerId = dto.ManagerId;
-
-            _dataContext.SaveChanges();
-
-            return Ok(dto);
-        }
-
-        [HttpDelete]
-        [Route("{id}")]
-        public ActionResult DeleteHotel(int id)
-        {
-            var hotel = _hotels.FirstOrDefault(x => x.Id == id);
-            if (hotel == null)
-            {
-                return NotFound();
-            }
-
-            _hotels.Remove(hotel);
-            _dataContext.SaveChanges();
-
-            return Ok();
-        }
-
-       
-        private bool IsInvalid(HotelDto dto)
-        {
-            return string.IsNullOrWhiteSpace(dto.Name) ||
-                   dto.Name.Length > 120 ||
-                   string.IsNullOrWhiteSpace(dto.Address);
-        }
-
-        private IQueryable<HotelDto> GetHotelDtos(IQueryable<Hotel> hotels)
-        {
-            return hotels
-                .Select(x => new HotelDto
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    Address = x.Address,
-                    ManagerId = x.ManagerId,
-                });
-        }
+                Id = x.Id,
+                Name = x.Name,
+                Address = x.Address,
+                ManagerId = x.ManagerId,
+            });
     }
 }
