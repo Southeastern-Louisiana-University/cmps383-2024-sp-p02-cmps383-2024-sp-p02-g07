@@ -1,9 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP24.Api.Data;
 using Selu383.SP24.Api.Features.Hotels;
 using Selu383.SP24.Api.Features.Users;
+using System.Security.Claims;
+using Selu383.SP24.Api.Controllers;
+using System.Data;
 
 namespace Selu383.SP24.Api.Controllers;
 
@@ -13,13 +17,15 @@ public class HotelsController : ControllerBase
 {
     private readonly DbSet<Hotel> hotels;
     private readonly DataContext dataContext;
-    
+    private readonly UserManager<User> userManager;
 
-    public HotelsController(DataContext dataContext)
+
+    public HotelsController(DataContext dataContext, UserManager<User> userManager)
     {
         this.dataContext = dataContext;
         hotels = dataContext.Set<Hotel>();
-      
+        this.userManager = userManager;
+
     }
 
     [HttpGet]
@@ -68,7 +74,7 @@ public class HotelsController : ControllerBase
     [HttpPut]
     [Route("{id}")]
     [Authorize]
-    public ActionResult<HotelDto> UpdateHotel(int id, HotelDto dto)
+    public async Task<ActionResult<HotelDto>> UpdateHotelAsync(int id, HotelDto dto)
     {
         if (IsInvalid(dto))
         {
@@ -81,8 +87,21 @@ public class HotelsController : ControllerBase
             return NotFound();
         }
 
+        var user = User.Identity.Name;
+
+        var userdto = await AuthenticationController.GetDto(userManager.Users).SingleAsync(x => x.UserName == user);
+
+        if (!User.IsInRole("Admin") && userdto.Id != hotel.ManagerId )
+        {
+            return Forbid();
+        }
+        
+
+        
+
         hotel.Name = dto.Name;
         hotel.Address = dto.Address;
+        hotel.ManagerId = dto.ManagerId;
 
         dataContext.SaveChanges();
 
@@ -127,4 +146,13 @@ public class HotelsController : ControllerBase
                 ManagerId = x.ManagerId,
             });
     }
+
+
+
+
+
 }
+
+
+
+

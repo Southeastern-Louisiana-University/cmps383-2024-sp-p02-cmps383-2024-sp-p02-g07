@@ -72,7 +72,7 @@ namespace Selu383.SP24.Api.Controllers
             return Ok(resultDto);
         }
 
-        private static IQueryable<UserDto> GetDto(IQueryable<User> users)
+        public static IQueryable<UserDto> GetDto(IQueryable<User> users)
         {
             return users.Select(x => new UserDto
             {
