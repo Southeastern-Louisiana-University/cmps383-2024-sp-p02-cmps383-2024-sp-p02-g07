@@ -10,6 +10,7 @@ using System.Security.Claims;
 
 namespace Selu383.SP24.Api.Controllers
 {
+    [Route("/api/authentication")]
     public class AuthenticationController : Controller
     {
         private readonly DataContext dataContext;
