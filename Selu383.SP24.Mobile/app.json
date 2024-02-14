@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "Selu-SP24-Mobile-p02-g07",
+    "slug": "Selu-SP24-Mobile-p02-g07",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.selu383.sp24.p02.g07"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "db0e270a-9fe7-4a7e-9419-d537832091c0"
+      }
+    },
+    "owner": "joshua.cantu-2"
+  }
+}
