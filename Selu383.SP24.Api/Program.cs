@@ -121,15 +121,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app
+    .UseRouting()
 
-app.UseRouting();
+    .UseAuthorization()
 
-app.UseAuthorization();
-
-app.UseEndpoints(x =>
-{
-    x.MapControllers();
-});
+    .UseEndpoints(x =>
+    {
+        x.MapControllers();
+    });
 
 app.UseStaticFiles();
 
