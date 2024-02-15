@@ -121,24 +121,24 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+
+app.UseRouting();
+
 app.UseAuthorization();
 
-app.UseRouting()
-    .UseEndpoints(x =>
-    {
-        x.MapControllers();
-    }
-    );
+app.UseEndpoints(x =>
+{
+    x.MapControllers();
+});
 
 app.UseStaticFiles();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSpa(X =>
+    app.UseSpa(x =>
     {
-        X.UseProxyToSpaDevelopmentServer("http://localhost:5173");
+        x.UseProxyToSpaDevelopmentServer("http://localhost:5173");
     });
-
 }
 else
 {
